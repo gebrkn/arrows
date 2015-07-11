@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>arrows!</title>
+    <meta charset="utf-8">
+    <link id="theme" rel="stylesheet" href="themes/contrast.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/theme/blackboard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/addon/scroll/simplescrollbars.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="arrows.js"></script>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/addon/scroll/simplescrollbars.min.js"></script>
+
+    <div id="panel">
+        <p id="form">
+            <label>distance</label><input name="distanceFactor" type="number" step="0.1">
+            <label>charge</label><input name="chargeFactor" type="number" step="5">
+            <label>gravity</label><input name="gravity" type="number" step="0.01">
+            | <b>arrows 0.1</b> | made with <a href="http://d3js.org/">d3.js</a>
+        </p>
+        <div id="editor">
+            <textarea id="code">{"text": "Hello, world"}</textarea>
+            <p id="buttons">
+                <button id="btn_plot">plot</button>
+                <button id="btn_png">get png</button>
+                <button id="btn_clear">clear</button>
+                <button id="btn_share">share</button>
+            </p>
+            <p id="error"></p>
+        </div>
+    </div>
+
+    <a id="toggle"></a>
+
+    <div id="main"></div>
+
+    <script>
+        window.onload = function() {
+
+            var doc = CodeMirror.fromTextArea(document.getElementById("code"), {
+                lineNumbers: false,
+                mode: "javascript",
+                theme: "blackboard",
+                scrollbarStyle: "simple",
+                tabSize: 2
+            });
+
+            d3.select("#toggle").on("click", function() {
+                var p = d3.select("#panel");
+                p.classed("closed", !p.classed("closed"));
+            });
+
+            d3.select("#btn_plot").on("click", function() {
+                d3.select("#error").text("");
+                var err = arrows.plotText(doc.getValue(), 0);
+                if(!err)
+                    d3.select("#panel").classed("closed", true);
+                d3.select("#error").text(err);
+            });
+
+            d3.select("#btn_png").on("click", function() {
+                arrows.asPNG();
+            });
+
+            d3.select("#btn_clear").on("click", function() {
+                arrows.clear();
+            });
+
+            d3.selectAll("input").on("input", function() {
+                var v = this.value;
+                if(this.type == "number")
+                    v = parseFloat(v);
+                arrows.option(this.name, v);
+            });
+
+            d3.selectAll("input").each(function() {
+                this.value = arrows.option(this.name) || "";
+            });
+
+//            arrows.plotText("option('withProto',0);plot(Function,3)", 2);
+//            d3.select("#panel").classed("closed", 1);
+
+
+        }
+    </script>
+
+</body>
+</html>

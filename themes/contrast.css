@@ -1,0 +1,98 @@
+svg {
+    background-color: #333;
+}
+
+text {
+    font: 11px Helvetica, sans-serif;
+    pointer-events: none;
+}
+
+rect.nodebox {
+    fill: #9FDDEB;
+    stroke: #eee;
+    stroke-width: 0px;
+
+}
+
+.nodebox.object {
+    fill: #D1DDF2;
+}
+
+.nodebox.function {
+    fill: #F8ADFF;
+}
+
+.nodebox.string {
+    fill: #C3FFC5;
+}
+
+.nodebox.number {
+    fill: #BBFF91;
+}
+
+.nodebox.boolean {
+    fill: #FFA39B;
+}
+
+.nodebox.null {
+    fill: #808080;
+}
+
+.nodebox.undefined {
+    fill: #aaa;
+}
+
+.propbox rect {
+    fill: #EADCD0;
+    cursor: pointer;
+}
+
+.propbox.active rect {
+    fill: #FFAF44;
+}
+
+.propbox text {
+    fill: #555;
+}
+
+.propbox.active text {
+    fill: #111;
+}
+
+
+.proplink {
+    fill: none;
+    stroke: #FFAF44;
+    stroke-width: 1px;
+    stroke-dasharray: 1, 1;
+}
+
+
+#marker_start, #marker_end {
+    fill: #FFAF44;
+}
+
+.content {
+    font-weight: bold;
+}
+
+.title {
+}
+
+.icon_close {
+    fill: #888;
+}
+
+.icon_pin {
+    fill: #888;
+}
+
+.fixed .icon_pin {
+    fill: white;
+}
+
+.button {
+    cursor: pointer;
+    fill: red;
+    opacity: 0;
+}
