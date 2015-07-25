@@ -72,11 +72,11 @@ rect.nodebox {
     fill: #FFAF44;
 }
 
-.content {
+.title1 {
     font-weight: bold;
 }
 
-.title {
+.title2 {
 }
 
 .icon_close {

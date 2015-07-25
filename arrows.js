@@ -33,7 +33,7 @@ arrows = (function () {
         }
 
         if (obj) {
-            return plot(obj, depth);
+            return plot(null, obj, depth);
         }
 
         try {
@@ -43,8 +43,8 @@ arrows = (function () {
         }
     }
 
-    function plot(obj, depth) {
-        inspect(obj, depth || 0);
+    function plot(varname, obj, depth) {
+        inspect(varname, obj, depth || 0);
         draw();
     }
 
@@ -56,6 +56,8 @@ arrows = (function () {
 
     function svgSize() {
         var svg = d3.select("svg");
+        if(!svg.node())
+            svg = d3.select("#main").append("svg");
         return [svg.node().offsetWidth, svg.node().offsetHeight];
     }
 
@@ -107,7 +109,7 @@ arrows = (function () {
     }
 
 
-    function inspect(obj, depth) {
+    function inspect(varname, obj, depth) {
 
         function cut(s) {
             if (s.length > MAX_VALUE_LEN)
@@ -157,34 +159,31 @@ arrows = (function () {
                 });
         }
 
-        var type = obj === null ? "null" : typeof(obj),
+        var type = typeof(obj),
             base = {
                 type: type,
                 props: [],
                 value: obj,
-                title: type,
-                content: ""
+                title1: varname ? varname + ": " + type : type,
+                title2: ""
             };
 
         switch (type) {
-            case "undefined":
-            case "null":
-                base.content = "";
-                break;
             case "object":
             case "function":
-                for (var i = 0; i < nodes.length; i++)
-                    if (nodes[i].value === obj)
-                        return nodes[i];
+                if(obj !== null)
+                    for (var i = 0; i < nodes.length; i++)
+                        if (nodes[i].value === obj)
+                            return nodes[i];
 
-                base.content = name(obj);
+                base.title2 = name(obj);
                 base.props = enumProps(base, opts.withProto);
                 break;
             default:
-                base.content = cut(String(obj));
+                base.title2 = cut(String(obj));
         }
 
-        var lens = [base.title.length, base.content.length].concat(base.props.map(function (p) {
+        var lens = [base.title1.length, base.title2.length].concat(base.props.map(function (p) {
             return p.name.length
         }));
         base.maxlen = Math.max.apply(Math, lens)
@@ -193,7 +192,7 @@ arrows = (function () {
 
         if (depth) {
             base.props.forEach(function (p) {
-                var n = inspect(p.value, depth - 1);
+                var n = inspect(null, p.value, depth - 1);
                 links.push({
                     source: base,
                     target: n,
@@ -299,7 +298,7 @@ arrows = (function () {
             } else {
                 links.push({
                     source: prop.base,
-                    target: inspect(prop.value, 0),
+                    target: inspect(null, prop.value, 0),
                     prop: prop
                 });
             }
@@ -388,15 +387,14 @@ arrows = (function () {
             g.append("text")
                 .attr("x", x + 10)
                 .attr("y", y + 18)
-                .attr("class", "title")
-                .text(n.title);
-
+                .attr("class", "title1")
+                .text(n.title1);
 
             g.append("text")
                 .attr("x", x + 10)
                 .attr("y", y + 32)
-                .attr("class", "content")
-                .text(n.content);
+                .attr("class", "title2")
+                .text(n.title2);
 
 
             drawProps(n, g);
