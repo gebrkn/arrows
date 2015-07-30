@@ -25,6 +25,7 @@
         </p>
         <div id="editor">
             <textarea id="code">{"text": "Hello, world"}</textarea>
+            <input type="text" id="scripts" placeholder="load scripts">
             <p id="buttons">
                 <button id="btn_plot">plot</button>
                 <button id="btn_png">get png</button>
@@ -42,6 +43,20 @@
     <script>
         window.onload = function() {
 
+            function loadScripts(urls) {
+
+                var loaded = {};
+                d3.selectAll("script").each(function() {
+                   loaded[this.src] = 1;
+                });
+
+                urls.forEach(function(u) {
+                    if(!loaded[u]) {
+                        d3.select("body").append("script").attr("src", u);
+                    }
+                })
+            }
+
             var doc = CodeMirror.fromTextArea(document.getElementById("code"), {
                 lineNumbers: false,
                 mode: "javascript",
@@ -56,6 +71,7 @@
             });
 
             d3.select("#btn_plot").on("click", function() {
+                loadScripts(d3.select("#scripts").node().value.split(","));
                 d3.select("#error").text("");
                 var err = arrows.plotText(doc.getValue(), 0);
                 if(!err)
@@ -79,7 +95,8 @@
             });
 
             d3.selectAll("input").each(function() {
-                this.value = arrows.option(this.name) || "";
+                if(arrows.option(this.name))
+                    this.value = arrows.option(this.name);
             });
 
 //            arrows.plotText("option('withProto',0);plot(Function,3)", 2);

@@ -33,7 +33,7 @@ arrows = (function () {
         }
 
         if (obj) {
-            return plot(null, obj, depth);
+            return plot(obj, null, depth);
         }
 
         try {
@@ -43,8 +43,8 @@ arrows = (function () {
         }
     }
 
-    function plot(varname, obj, depth) {
-        inspect(varname, obj, depth || 0);
+    function plot(obj, varname, depth) {
+        inspect(obj, varname, depth || 0);
         draw();
     }
 
@@ -109,7 +109,7 @@ arrows = (function () {
     }
 
 
-    function inspect(varname, obj, depth) {
+    function inspect(obj, varname, depth) {
 
         function cut(s) {
             if (s.length > MAX_VALUE_LEN)
@@ -118,9 +118,9 @@ arrows = (function () {
         }
 
         function name(obj) {
-            var m = String(obj).match(/^function\s+(\w+)/);
+            var m = String(obj).match(/^function\s+(\w*)/);
             if (m)
-                return cut(m[1]);
+                return m[1] ? cut(m[1]) : "(anonymous)";
             var m = Object.prototype.toString.call(obj).match(/^\[object\s+(\w+)/);
             if (m)
                 return cut(m[1]);
@@ -192,7 +192,7 @@ arrows = (function () {
 
         if (depth) {
             base.props.forEach(function (p) {
-                var n = inspect(null, p.value, depth - 1);
+                var n = inspect(p.value, null, depth - 1);
                 links.push({
                     source: base,
                     target: n,
@@ -298,7 +298,7 @@ arrows = (function () {
             } else {
                 links.push({
                     source: prop.base,
-                    target: inspect(null, prop.value, 0),
+                    target: inspect(prop.value, null, 0),
                     prop: prop
                 });
             }

@@ -35,7 +35,7 @@ html, body {
 }
 
 #panel .CodeMirror {
-    height: 470px;
+    height: 430px;
 }
 
 #error {
@@ -87,6 +87,16 @@ html, body {
     width: 40px;
     color: #aaa;
 
+}
+
+#scripts {
+    background: #333;
+    border: 1px solid #777;
+    font-size: 10px;
+    margin: 0 10px 0 20px;
+    color: #aaa;
+    padding: 5px;
+    width: 80%
 }
 
 #toggle {
