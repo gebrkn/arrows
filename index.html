@@ -9,12 +9,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/addon/scroll/simplescrollbars.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="arrows.js"></script>
+    <script src="index.js"></script>
 </head>
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.4.0/addon/scroll/simplescrollbars.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/addon/scroll/simplescrollbars.min.js"></script>
 
     <div id="panel">
         <p id="form">
@@ -25,7 +29,6 @@
         </p>
         <div id="editor">
             <textarea id="code">{"text": "Hello, world"}</textarea>
-            <input type="text" id="scripts" placeholder="load scripts">
             <p id="buttons">
                 <button id="btn_plot">plot</button>
                 <button id="btn_png">get png</button>
@@ -37,74 +40,8 @@
     </div>
 
     <a id="toggle"></a>
-
     <div id="main"></div>
-
-    <script>
-        window.onload = function() {
-
-            function loadScripts(urls) {
-
-                var loaded = {};
-                d3.selectAll("script").each(function() {
-                   loaded[this.src] = 1;
-                });
-
-                urls.forEach(function(u) {
-                    if(!loaded[u]) {
-                        d3.select("body").append("script").attr("src", u);
-                    }
-                })
-            }
-
-            var doc = CodeMirror.fromTextArea(document.getElementById("code"), {
-                lineNumbers: false,
-                mode: "javascript",
-                theme: "blackboard",
-                scrollbarStyle: "simple",
-                tabSize: 2
-            });
-
-            d3.select("#toggle").on("click", function() {
-                var p = d3.select("#panel");
-                p.classed("closed", !p.classed("closed"));
-            });
-
-            d3.select("#btn_plot").on("click", function() {
-                loadScripts(d3.select("#scripts").node().value.split(","));
-                d3.select("#error").text("");
-                var err = arrows.plotText(doc.getValue(), 0);
-                if(!err)
-                    d3.select("#panel").classed("closed", true);
-                d3.select("#error").text(err);
-            });
-
-            d3.select("#btn_png").on("click", function() {
-                arrows.asPNG();
-            });
-
-            d3.select("#btn_clear").on("click", function() {
-                arrows.clear();
-            });
-
-            d3.selectAll("input").on("input", function() {
-                var v = this.value;
-                if(this.type == "number")
-                    v = parseFloat(v);
-                arrows.option(this.name, v);
-            });
-
-            d3.selectAll("input").each(function() {
-                if(arrows.option(this.name))
-                    this.value = arrows.option(this.name);
-            });
-
-//            arrows.plotText("option('withProto',0);plot(Function,3)", 2);
-//            d3.select("#panel").classed("closed", 1);
-
-
-        }
-    </script>
+    <iframe id="frame" sandbox="allow-same-origin allow-scripts"></iframe>
 
 </body>
 </html>

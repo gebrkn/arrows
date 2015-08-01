@@ -8,43 +8,56 @@ text {
 }
 
 rect.nodebox {
-    fill: #9FDDEB;
-    stroke: #eee;
-    stroke-width: 0px;
-
 }
 
-.nodebox.object {
+.type_object {
     fill: #D1DDF2;
 }
 
-.nodebox.function {
+.type_function {
     fill: #F8ADFF;
 }
 
-.nodebox.string {
+.type_string {
     fill: #C3FFC5;
 }
 
-.nodebox.number {
-    fill: #BBFF91;
+.type_number {
+    fill: #5CA1ED;
 }
 
-.nodebox.boolean {
+.type_boolean {
     fill: #FFA39B;
 }
 
-.nodebox.null {
+.type_null {
     fill: #808080;
 }
 
-.nodebox.undefined {
+.type_undefined {
     fill: #aaa;
+}
+
+.type_error {
+    fill: #FF0000;
 }
 
 .propbox rect {
     fill: #EADCD0;
     cursor: pointer;
+}
+
+.typebox {
+    stroke: #999;
+    stroke-width: 1px;
+
+}
+
+.typetext {
+    font-family: monospace;
+    font-size: 8px;
+    font-weight: bold;
+    xfont-style: italic;
 }
 
 .propbox.active rect {

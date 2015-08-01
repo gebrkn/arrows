@@ -56,7 +56,7 @@ arrows = (function () {
 
     function svgSize() {
         var svg = d3.select("svg");
-        if(!svg.node())
+        if (!svg.node())
             svg = d3.select("#main").append("svg");
         return [svg.node().offsetWidth, svg.node().offsetHeight];
     }
@@ -120,10 +120,12 @@ arrows = (function () {
         function name(obj) {
             var m = String(obj).match(/^function\s+(\w*)/);
             if (m)
-                return m[1] ? cut(m[1]) : "(anonymous)";
+                return m[1] ? cut(m[1]) : "[anonymous]";
             var m = Object.prototype.toString.call(obj).match(/^\[object\s+(\w+)/);
-            if (m)
+            if (m && m[1] !== "Object")
                 return cut(m[1]);
+            if(obj && obj.constructor)
+                return name(obj.constructor);
             return "";
         }
 
@@ -138,25 +140,27 @@ arrows = (function () {
             if (withProto && ps.indexOf("__proto__") < 0)
                 ps.push("__proto__");
 
-            return ps.sort(function (a, b) {
+            ps = ps.sort(function (a, b) {
                 return a.toLowerCase().localeCompare(b.toLowerCase());
-            }).map(function (p, i) {
-                    var prop = {
-                        name: p,
-                        base: base,
-                        pos: i
-                    }
+            });
 
-                    try {
-                        prop.value = obj[p];
-                        prop.type = typeof(value);
-                    } catch (e) {
-                        prop.value = e.message;
-                        prop.type = "error";
-                    }
+            return ps.map(function (p, i) {
+                var prop = {
+                    name: p,
+                    base: base,
+                    pos: i
+                }
 
-                    return prop;
-                });
+                try {
+                    prop.value = base.value[p];
+                    prop.type = typeof(prop.value);
+                } catch (e) {
+                    prop.value = e.message;
+                    prop.type = "error";
+                }
+
+                return prop;
+            });
         }
 
         var type = typeof(obj),
@@ -171,7 +175,7 @@ arrows = (function () {
         switch (type) {
             case "object":
             case "function":
-                if(obj !== null)
+                if (obj !== null)
                     for (var i = 0; i < nodes.length; i++)
                         if (nodes[i].value === obj)
                             return nodes[i];
@@ -186,7 +190,7 @@ arrows = (function () {
         var lens = [base.title1.length, base.title2.length].concat(base.props.map(function (p) {
             return p.name.length
         }));
-        base.maxlen = Math.max.apply(Math, lens)
+        base.maxlen = 4 + Math.max.apply(Math, lens)
 
         nodes.push(base);
 
@@ -244,7 +248,6 @@ arrows = (function () {
         }
 
         function initLayout() {
-            var siz = svgSize();
             nodes.forEach(function (n) {
                 n.width = n.maxlen * 6 + 20;
                 n.height = (2 + n.props.length) * LINE_HEIGHT + 10 * (n.props.length > 0);
@@ -252,6 +255,10 @@ arrows = (function () {
         }
 
         function connector(c) {
+            var siz = svgSize();
+
+
+
             var tx = c.target.x - c.target.width / 2 + 20 + c.target.linkCount * 10,
                 sy = c.source.y + propY(c.prop) + LINE_HEIGHT / 2;
 
@@ -266,7 +273,7 @@ arrows = (function () {
             var f = 1 / (1 + c.prop.pos);
 
             var ky = (c.target.linkCount + 1) * 10,
-                kx = (c.prop.pos + 1) * 10;
+                kx = 20 + (c.prop.pos + 1) * 10;
 
             return "M" + sx + "," + sy
                 + "L" + (sx + dx * kx) + "," + sy
@@ -336,11 +343,20 @@ arrows = (function () {
                 .attr("height", LINE_HEIGHT - 4)
                 .attr("rx", 5)
                 .attr("ry", 5)
-
                 .on("click", onPropClick);
 
+            b.append("circle")
+                .attr("cx", x + 8)
+                .attr("cy", function (p) {
+                    return propY(p) + 8
+                })
+                .attr("r", 4)
+                .attr("class", function (p) {
+                    return "typebox type_" + p.type;
+                });
+
             b.append("text")
-                .attr("x", x + 5)
+                .attr("x", x + 18)
                 .attr("y", function (p) {
                     return propY(p) + 12
                 })
@@ -376,7 +392,7 @@ arrows = (function () {
             var x = -n.width / 2, y = -n.height / 2;
 
             g.append("rect")
-                .attr("class", "nodebox " + n.type)
+                .attr("class", "nodebox type_" + n.type)
                 .attr("x", x + 5)
                 .attr("y", y + 0)
                 .attr("width", n.width - 10)
@@ -401,7 +417,6 @@ arrows = (function () {
             drawButton(n, g, y, "icon_close", onNodeClose);
             drawButton(n, g, y + 15, "icon_pin", onNodePin);
 
-            //g.append("circle").attr("x", 0).attr("y", 0).attr("r", 4).attr("fill", "red")
         }
 
         d3.select("svg").remove();
