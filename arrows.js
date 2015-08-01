@@ -3,9 +3,9 @@ arrows = (function () {
     var nodes = [];
     var links = [];
 
-    var force = null;
+    var svg, force;
 
-    var MAX_VALUE_LEN = 20;
+    var MAX_VALUE_LEN = 50;
     var LINE_HEIGHT = 20;
 
     var opts = {
@@ -24,25 +24,6 @@ arrows = (function () {
         return opts[key];
     }
 
-    function plotText(text, depth) {
-        var obj;
-
-        try {
-            obj = JSON.parse(text);
-        } catch (e) {
-        }
-
-        if (obj) {
-            return plot(obj, null, depth);
-        }
-
-        try {
-            eval(text);
-        } catch (e) {
-            return e.message;
-        }
-    }
-
     function plot(obj, varname, depth) {
         inspect(obj, varname, depth || 0);
         draw();
@@ -51,14 +32,13 @@ arrows = (function () {
     function clear() {
         nodes = [];
         links = [];
-        d3.select("svg").remove();
+        svg.selectAll("*").remove();
     }
 
     function svgSize() {
-        var svg = d3.select("svg");
-        if (!svg.node())
-            svg = d3.select("#main").append("svg");
-        return [svg.node().offsetWidth, svg.node().offsetHeight];
+        return {
+            w: svg.node().offsetWidth,
+            h: svg.node().offsetHeight};
     }
 
     function asPNG() {
@@ -70,10 +50,8 @@ arrows = (function () {
             var css = r.response;
             css += ".icon_pin, .icon_close {display:none}";
 
-            var svg = d3.select("svg"),
+            var s = svgSize(),
                 xml = svg.html(),
-                w = svg.node().offsetWidth,
-                h = svg.node().offsetHeight,
                 color = svg.node().style.backgroundColor;
 
             xml =
@@ -85,8 +63,8 @@ arrows = (function () {
                     + "</svg>";
 
             var canvas = document.createElement("canvas");
-            canvas.setAttribute("width", w)
-            canvas.setAttribute("height", h)
+            canvas.setAttribute("width", s.w)
+            canvas.setAttribute("height", s.h)
 
             var image = new Image();
 
@@ -95,7 +73,7 @@ arrows = (function () {
                 var ctx = canvas.getContext('2d');
 
                 ctx.fillStyle = color;
-                ctx.fillRect(0, 0, w, h);
+                ctx.fillRect(0, 0, s.w, s.h);
 
                 ctx.drawImage(image, 0, 0);
 
@@ -119,14 +97,14 @@ arrows = (function () {
 
         function name(obj) {
             var m = String(obj).match(/^function\s+(\w*)/);
-            if (m)
-                return m[1] ? cut(m[1]) : "[anonymous]";
-            var m = Object.prototype.toString.call(obj).match(/^\[object\s+(\w+)/);
+            if (m && m[1])
+                return cut(m[1]);
+            m = Object.prototype.toString.call(obj).match(/^\[object\s+(\w+)/);
             if (m && m[1] !== "Object")
                 return cut(m[1]);
-            if(obj && obj.constructor)
+            if(obj && obj.hasOwnProperty && obj.hasOwnProperty("constructor"))
                 return name(obj.constructor);
-            return "";
+            return m ? m[1] : "";
         }
 
         function enumProps(base, withProto) {
@@ -149,13 +127,13 @@ arrows = (function () {
                     name: p,
                     base: base,
                     pos: i
-                }
+                };
 
                 try {
                     prop.value = base.value[p];
                     prop.type = typeof(prop.value);
                 } catch (e) {
-                    prop.value = e.message;
+                    prop.value = e;
                     prop.type = "error";
                 }
 
@@ -168,9 +146,12 @@ arrows = (function () {
                 type: type,
                 props: [],
                 value: obj,
-                title1: varname ? varname + ": " + type : type,
+                title1: type,
                 title2: ""
             };
+
+        if(varname)
+            base.title1 = varname + ":" + base.title1;
 
         switch (type) {
             case "object":
@@ -182,6 +163,9 @@ arrows = (function () {
 
                 base.title2 = name(obj);
                 base.props = enumProps(base, opts.withProto);
+                break;
+            case "string":
+                base.title2 = '"' + cut(String(obj)) + '"';
                 break;
             default:
                 base.title2 = cut(String(obj));
@@ -210,10 +194,9 @@ arrows = (function () {
 
     function draw() {
 
-
         function linkDistance(c) {
             var s = svgSize(),
-                m = Math.min(s[0], s[1])
+                m = Math.min(s.w, s.h)
             return (m / nodes.length) * opts.distanceFactor;
         }
 
@@ -242,9 +225,9 @@ arrows = (function () {
 
         function updateSize() {
             var s = svgSize();
-            svg.attr("width", s[0]).attr("height", s[1])
-                .attr("viewBox", "0 0 " + s[0] + " " + s[1]);
-            force.size(s).start();
+            svg.attr("width", s.w).attr("height", s.h)
+                .attr("viewBox", "0 0 " + s.w + " " + s.h);
+            force.size([s.w, s.h]).start();
         }
 
         function initLayout() {
@@ -254,11 +237,7 @@ arrows = (function () {
             });
         }
 
-        function connector(c) {
-            var siz = svgSize();
-
-
-
+        function proplink(c) {
             var tx = c.target.x - c.target.width / 2 + 20 + c.target.linkCount * 10,
                 sy = c.source.y + propY(c.prop) + LINE_HEIGHT / 2;
 
@@ -287,13 +266,15 @@ arrows = (function () {
         }
 
         function onTick() {
+            var s = svgSize();
+
             svg.selectAll("g.node").each(function (n) {
                 n.linkCount = 0;
-                var siz = svgSize();
-                n.x = Math.max(10 + n.width / 2, Math.min(siz[0] - n.width / 2 - 10, n.x || 0))
-                n.y = Math.max(10 + n.height / 2, Math.min(siz[1] - n.height / 2 - 10, n.y || 0))
+                n.x = Math.max(10 + n.width / 2,  Math.min(s.w - n.width / 2 - 10, n.x || 0))
+                n.y = Math.max(10 + n.height / 2, Math.min(s.h - n.height / 2 - 10, n.y || 0))
             }).attr("transform", transform);
-            path.attr("d", connector);
+
+            d3.selectAll(".proplink").attr("d", proplink);
         }
 
         function onPropClick(prop) {
@@ -313,7 +294,6 @@ arrows = (function () {
             force.stop();
             draw();
         }
-
 
         function onNodeClose(n) {
             force.stop();
@@ -404,13 +384,19 @@ arrows = (function () {
                 .attr("x", x + 10)
                 .attr("y", y + 18)
                 .attr("class", "title1")
-                .text(n.title1);
+                .html(function() {
+                    var s = n.title1.split(":");
+                    if(s.length == 2)
+                        return "<tspan>" + s[0] + ":</tspan> " + s[1];
+                    return s[0];
+
+                });
 
             g.append("text")
                 .attr("x", x + 10)
                 .attr("y", y + 32)
                 .attr("class", "title2")
-                .text(n.title2);
+                .html(n.title2);
 
 
             drawProps(n, g);
@@ -419,8 +405,8 @@ arrows = (function () {
 
         }
 
-        d3.select("svg").remove();
-        var svg = d3.select("#main").append("svg");
+        svg = d3.select("#main svg");
+        svg.selectAll("*").remove();
 
         initLayout();
 
@@ -472,7 +458,7 @@ arrows = (function () {
 
         svg.selectAll("g.node").call(force.drag)
 
-        var path = svg.append("g").selectAll("path")
+        svg.append("g").selectAll("path")
             .data(force.links())
             .enter().append("path")
             .attr("class", "proplink")
@@ -487,7 +473,6 @@ arrows = (function () {
 
     return {
         plot: plot,
-        plotText: plotText,
         option: option,
         asPNG: asPNG,
         clear: clear

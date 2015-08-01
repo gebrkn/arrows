@@ -28,7 +28,7 @@
             | <b>arrows 0.1</b> | made with <a href="http://d3js.org/">d3.js</a>
         </p>
         <div id="editor">
-            <textarea id="code">{"text": "Hello, world"}</textarea>
+            <textarea id="code">_plot({"text": "Hello, world"}, "myObject")</textarea>
             <p id="buttons">
                 <button id="btn_plot">plot</button>
                 <button id="btn_png">get png</button>
@@ -40,7 +40,7 @@
     </div>
 
     <a id="toggle"></a>
-    <div id="main"></div>
+    <div id="main"><svg></svg></div>
     <iframe id="frame" sandbox="allow-same-origin allow-scripts"></iframe>
 
 </body>

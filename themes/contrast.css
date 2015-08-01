@@ -92,6 +92,11 @@ rect.nodebox {
 .title2 {
 }
 
+.title1 tspan {
+    fill: red;
+    font-weight: bold
+}
+
 .icon_close {
     fill: #888;
 }

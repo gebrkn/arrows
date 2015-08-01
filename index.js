@@ -117,5 +117,6 @@ window.onload = function () {
         if (arrows.option(this.name))
             this.value = arrows.option(this.name);
     });
+
 }
 
