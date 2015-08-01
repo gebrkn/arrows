@@ -57,7 +57,7 @@ arrows = (function () {
             xml =
                 '<?xml version="1.0" encoding="utf-8" standalone="no"?>\n'
                     + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n'
-                    + '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + w + 'px" height="' + h + 'px">\n'
+                    + '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + s.w + 'px" height="' + s.h + 'px">\n'
                     + "<style type='text/css'>" + css + "</style>"
                     + xml
                     + "</svg>";
