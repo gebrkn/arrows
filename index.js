@@ -27,7 +27,7 @@ window.onload = function () {
             + "    }})();"
             + "</script>"
             + html
-            + "<script>" + js + "</script>"
+            + "<script>(function() {" + js + "})();</script>"
         document.getElementById("frame").srcdoc = html;
     }
 

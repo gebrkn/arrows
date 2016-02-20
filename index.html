@@ -25,12 +25,17 @@
             <label>distance</label><input name="distanceFactor" type="number" step="0.1">
             <label>charge</label><input name="chargeFactor" type="number" step="5">
             <label>gravity</label><input name="gravity" type="number" step="0.01">
-            | <b>arrows 0.1</b> | made with <a href="http://d3js.org/">d3.js</a>
+            | <a href="https://github.com/gebrkn/arrows">arrows 0.1.1</a> | made with <a href="http://d3js.org/">d3.js</a>
         </p>
         <div id="editor">
-            <textarea id="code">_plot({"text": "Hello, world"}, "myObject")</textarea>
+            <textarea id="code">
+// paste your javascript here.
+// `_plot(value [,name])` to plot something
+
+_plot({"text": "Hello, world"}, "myObject")
+            </textarea>
             <p id="buttons">
-                <button id="btn_plot">plot</button>
+                <button id="btn_plot">run!</button>
                 <button id="btn_png">get png</button>
                 <button id="btn_clear">clear</button>
                 <button id="btn_share">share</button>

@@ -10,8 +10,8 @@ arrows = (function () {
 
     var opts = {
         withProto: true,
-        distanceFactor: 3,
-        chargeFactor: -90,
+        distanceFactor: 2,
+        chargeFactor: -20,
         gravity: 0.1
     };
 
@@ -95,11 +95,31 @@ arrows = (function () {
             return s;
         }
 
+        function str(obj) {
+            try {
+                return String(obj);
+            } catch(e) {
+            }
+            try {
+                return Object.prototype.toString.call(obj);
+            } catch(e) {
+            }
+            return "";
+        }
+
         function name(obj) {
-            var m = String(obj).match(/^function\s+(\w*)/);
+            if(typeof obj === "function" && obj.hasOwnProperty("name"))
+                return obj.name;
+            if(typeof obj === "undefined")
+                return "undefined";
+            if(obj === null)
+                return "null";
+
+            var s = str(obj);
+            var m = s.match(/^function\s+(\w*)/);
             if (m && m[1])
                 return cut(m[1]);
-            m = Object.prototype.toString.call(obj).match(/^\[object\s+(\w+)/);
+            m = s.match(/^\[object\s+(\w+)/);
             if (m && m[1] !== "Object")
                 return cut(m[1]);
             if(obj && obj.hasOwnProperty && obj.hasOwnProperty("constructor"))
@@ -146,12 +166,8 @@ arrows = (function () {
                 type: type,
                 props: [],
                 value: obj,
-                title1: type,
-                title2: ""
+                title: ""
             };
-
-        if(varname)
-            base.title1 = varname + ":" + base.title1;
 
         switch (type) {
             case "object":
@@ -161,17 +177,26 @@ arrows = (function () {
                         if (nodes[i].value === obj)
                             return nodes[i];
 
-                base.title2 = name(obj);
+                base.title = name(obj);
+                if(type === "function")
+                    base.title += "()";
+                else if(!base.title)
+                    base.title = "{}";
+
+
                 base.props = enumProps(base, opts.withProto);
                 break;
             case "string":
-                base.title2 = '"' + cut(String(obj)) + '"';
+                base.title = '"' + cut(String(obj)) + '"';
                 break;
             default:
-                base.title2 = cut(String(obj));
+                base.title = cut(String(obj));
         }
 
-        var lens = [base.title1.length, base.title2.length].concat(base.props.map(function (p) {
+        if(varname)
+            base.title = varname + ":" + base.title;
+
+        var lens = [base.title.length].concat(base.props.map(function (p) {
             return p.name.length
         }));
         base.maxlen = 4 + Math.max.apply(Math, lens)
@@ -205,7 +230,7 @@ arrows = (function () {
         }
 
         function propY(prop) {
-            return -prop.base.height / 2 + (2 + prop.pos) * LINE_HEIGHT;
+            return -prop.base.height / 2 + (1.5 + prop.pos) * LINE_HEIGHT;
         }
 
         function hasLink(prop) {
@@ -233,7 +258,7 @@ arrows = (function () {
         function initLayout() {
             nodes.forEach(function (n) {
                 n.width = n.maxlen * 6 + 20;
-                n.height = (2 + n.props.length) * LINE_HEIGHT + 10 * (n.props.length > 0);
+                n.height = n.props.length ? (2 + n.props.length) * LINE_HEIGHT : 1.5 * LINE_HEIGHT;
             });
         }
 
@@ -382,21 +407,21 @@ arrows = (function () {
 
             g.append("text")
                 .attr("x", x + 10)
-                .attr("y", y + 18)
+                .attr("y", y + LINE_HEIGHT)
                 .attr("class", "title1")
                 .html(function() {
-                    var s = n.title1.split(":");
+                    var s = n.title.split(":");
                     if(s.length == 2)
                         return "<tspan>" + s[0] + ":</tspan> " + s[1];
                     return s[0];
 
                 });
 
-            g.append("text")
-                .attr("x", x + 10)
-                .attr("y", y + 32)
-                .attr("class", "title2")
-                .html(n.title2);
+            //g.append("text")
+            //    .attr("x", x + 10)
+            //    .attr("y", y + 32)
+            //    .attr("class", "title2")
+            //    .html(n.title2);
 
 
             drawProps(n, g);
