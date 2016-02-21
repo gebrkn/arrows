@@ -95,36 +95,41 @@ arrows = (function () {
             return s;
         }
 
-        function str(obj) {
-            try {
-                return String(obj);
-            } catch(e) {
-            }
-            try {
-                return Object.prototype.toString.call(obj);
-            } catch(e) {
-            }
-            return "";
-        }
-
         function name(obj) {
-            if(typeof obj === "function" && obj.hasOwnProperty("name"))
-                return obj.name;
-            if(typeof obj === "undefined")
-                return "undefined";
             if(obj === null)
                 return "null";
 
-            var s = str(obj);
-            var m = s.match(/^function\s+(\w*)/);
-            if (m && m[1])
-                return cut(m[1]);
-            m = s.match(/^\[object\s+(\w+)/);
-            if (m && m[1] !== "Object")
-                return cut(m[1]);
-            if(obj && obj.hasOwnProperty && obj.hasOwnProperty("constructor"))
-                return name(obj.constructor);
-            return m ? m[1] : "";
+            var s = "", t = typeof obj;
+
+            if(t === "function" && obj.hasOwnProperty("name"))
+                return obj.name + "()";
+
+            if(!s) {
+                try {
+                    s = "" + obj.constructor.name;
+                } catch (e) {};
+            }
+
+            if(!s) {
+                try {
+                    s = Object.prototype.toString.call(obj).match(/^\[object\s+(\w+)/)[1];
+                } catch(e) {}
+            }
+
+            if(s) {
+                if(s === "Array") return "[]";
+                if(s === "Object") return "{}";
+
+                if(!obj.hasOwnProperty("constructor"))
+                    s = "new " + s;
+
+                return s;
+            }
+
+            if(t === "object") return "{}";
+            if(t === "function") return "()";
+
+            return "?";
         }
 
         function enumProps(base, withProto) {
@@ -166,6 +171,7 @@ arrows = (function () {
                 type: type,
                 props: [],
                 value: obj,
+                varname: varname || "",
                 title: ""
             };
 
@@ -178,27 +184,22 @@ arrows = (function () {
                             return nodes[i];
 
                 base.title = name(obj);
-                if(type === "function")
-                    base.title += "()";
-                else if(!base.title)
-                    base.title = "{}";
-
-
                 base.props = enumProps(base, opts.withProto);
+
                 break;
             case "string":
-                base.title = '"' + cut(String(obj)) + '"';
+                base.title = '"' + String(obj) + '"';
                 break;
             default:
-                base.title = cut(String(obj));
+                base.title = String(obj);
         }
 
-        if(varname)
-            base.title = varname + ":" + base.title;
+        base.title = cut(base.title);
 
         var lens = [base.title.length].concat(base.props.map(function (p) {
             return p.name.length
         }));
+
         base.maxlen = 4 + Math.max.apply(Math, lens)
 
         nodes.push(base);
