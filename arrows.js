@@ -411,10 +411,9 @@ arrows = (function () {
                 .attr("y", y + LINE_HEIGHT)
                 .attr("class", "title1")
                 .html(function() {
-                    var s = n.title.split(":");
-                    if(s.length == 2)
-                        return "<tspan>" + s[0] + ":</tspan> " + s[1];
-                    return s[0];
+                    if(n.varname)
+                        return "<tspan>" + n.varname + ":</tspan> " + n.title;
+                    return n.title;
 
                 });
 
