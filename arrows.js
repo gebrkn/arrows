@@ -36,9 +36,11 @@ arrows = (function () {
     }
 
     function svgSize() {
+        var r = svg.node().getBoundingClientRect();
         return {
-            w: svg.node().offsetWidth,
-            h: svg.node().offsetHeight};
+            w: r.width,
+            h: r.height
+        };
     }
 
     function asPNG() {
@@ -106,22 +108,21 @@ arrows = (function () {
 
             if(!s) {
                 try {
-                    s = "" + obj.constructor.name;
+                    s = "[object " + obj.constructor.name + "]";
                 } catch (e) {};
             }
 
             if(!s) {
                 try {
-                    s = Object.prototype.toString.call(obj).match(/^\[object\s+(\w+)/)[1];
+                    s = Object.prototype.toString.call(obj);
                 } catch(e) {}
             }
 
             if(s) {
-                if(s === "Array") return "[]";
-                if(s === "Object") return "{}";
+                var m = s.match(/^\[object\s+(\w+)/);
 
-                if(!obj.hasOwnProperty("constructor"))
-                    s = "new " + s;
+                if(m && m[1] === "Array") return "[]";
+                if(m && m[1] === "Object") return "{}";
 
                 return s;
             }
@@ -412,7 +413,7 @@ arrows = (function () {
                 .attr("class", "title1")
                 .html(function() {
                     if(n.varname)
-                        return "<tspan>" + n.varname + ":</tspan> " + n.title;
+                        return "<tspan>" + n.varname + "</tspan>";
                     return n.title;
 
                 });
