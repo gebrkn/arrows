@@ -1,64 +1,57 @@
-window._error = function (e) {
-    d3.select("#error").text(e.message);
+function evalJS(_____s) {
+    try {
+        return [eval(_____s), 'js'];
+    } catch (_____e) {
+        return [_____e, 'error'];
+    }
 }
+
 
 window.onload = function () {
 
-    function guessLang(val) {
-        val = val.trim();
-        if (!val)
-            return "js";
-        if (val[0] == "{")
-            return "json";
-        if (val[0] == "<")
-            return "html";
-        return "js";
+    function getObject(s) {
+        s = s.trim();
+
+        if (!s)
+            return ['', 'null'];
+
+
+        try {
+            return [JSON.parse(s), 'json'];
+        } catch (e) {
+        }
+        ;
+
+        return evalJS(s);
     }
 
-    function plotHTML(html, js) {
-        html = "<script>"
-            + "_plot = function() { parent.arrows.plot.apply(parent.arrows,arguments) };"
-            + "_globals = 0;"
-            + "_globals = (function() { "
-            + "    var g = Object.keys(window);"
-            + "    return function() {"
-            + "        return Object.keys(window).filter(function(k) { return g.indexOf(k) < 0})."
-            + "            reduce(function(o,k) { return (o[k] = window[k]), o }, {})"
-            + "    }})();"
-            + "</script>"
-            + html
-            + "<script>(function() {" + js + "})();</script>"
-        document.getElementById("frame").srcdoc = html;
+    function showError(e) {
+        d3.select("#hint").classed("error", true).text(e ? e.message : '');
     }
 
     function plot() {
-        d3.select("#error").text("");
+        d3.select("#hint").text("");
         d3.select("#frame").classed("has-frame", false);
         d3.select("#main").classed("has-frame", false);
 
-        var s = code.getValue();
+        var res = getObject(code.getValue());
 
-        switch (guessLang(s)) {
-            case "json":
-                var obj = null;
-                try {
-                    obj = JSON.parse(s);
-                } catch (e) {
-                    _error(e);
-                    return;
-                }
-                arrows.plot(obj);
-                break;
-            case "html":
-                d3.select("#frame").classed("has-frame", true);
-                d3.select("#main").classed("has-frame", true);
-                plotHTML(s, "");
-                break;
-            case "js":
-                plotHTML("", s);
-                break;
+        if (res[1] === 'null') {
+            return;
         }
-        d3.select("#panel").classed("closed", true);
+
+        if (res[1] === 'error') {
+            showError(res[0]);
+            return;
+        }
+
+        if (res[1] === 'json') {
+            arrows.plot(res[0], {}, "JSON");
+        }
+
+        if (res[1] === 'js') {
+            arrows.plot(res[0], {withProto: true, withFunctions: true}, '', 0);
+        }
     }
 
     var timer = 0;
@@ -66,7 +59,10 @@ window.onload = function () {
     function updateCode() {
         clearTimeout(timer);
         timer = setTimeout(function () {
-            switch (guessLang(code.getValue())) {
+            showError(null);
+
+            var res = getObject(code.getValue().trim());
+            switch (res[1]) {
                 case "js":
                 case "json":
                     code.setOption("mode", "javascript");
@@ -74,6 +70,8 @@ window.onload = function () {
                 case "html":
                     code.setOption("mode", "htmlmixed");
                     break;
+                case "error":
+                    showError(res[0]);
             }
         }, 400);
     }
@@ -86,14 +84,13 @@ window.onload = function () {
         tabSize: 4
     });
 
-
     code.on("change", updateCode);
 
     updateCode();
 
     d3.select("#toggle").on("click", function () {
-        var p = d3.select("#panel");
-        p.classed("closed", !p.classed("closed"));
+        var p = d3.select("body");
+        p.classed("panel-closed", !p.classed("panel-closed"));
     });
 
     d3.select("#btn_plot").on("click", plot);
@@ -106,9 +103,21 @@ window.onload = function () {
         arrows.clear();
     });
 
+    var pinned = false;
+
+    d3.select("#btn_pin").on("click", function () {
+        if (pinned) {
+            arrows.unpinAll();
+        } else {
+            arrows.pinAll();
+        }
+        pinned = !pinned;
+        d3.select("#btn_pin").text(pinned ? "unpin" : "pin");
+    });
+
     d3.selectAll("input").on("input", function () {
         var v = this.value;
-        if (this.type == "number")
+        if (this.type === "number")
             v = parseFloat(v);
         arrows.option(this.name, v);
     });

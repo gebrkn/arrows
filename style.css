@@ -5,66 +5,70 @@ html, body {
     padding: 0;
 }
 
-
 #panel {
     box-sizing: border-box;
     font-family: 'Lucida Grande', 'Lucida Sans Unicode', Tahoma, sans-serif;
-    width: 600px;
-    height: 600px;
+    font-size: 12px;
+    width: 300px;
+    height: 100%;
     position: absolute;
     left: 0;
     top: 0;
     background: #0C1021;
-    border-radius: 0 0 120px 0;
     color: #777;
-    border-right: 3px dotted #555;
-    border-bottom: 3px dotted #555;
-    transition: all 0.2s ease, visibility 0s;
+    border-right: 1px dotted #555;
     z-index: 10;
+    padding: 20px;
+    transition: all 0.2s ease;
 
 }
 
-#panel.closed {
-    height: 40px;
-    overflow: hidden;
-    width: 85%;
-    border-radius: 0 0 20px 0;
+.panel-closed #panel {
+    left:-300px;
 }
 
-#panel.closed #editor {
-    display: none;
+#editor {
 }
 
-#error {
-    position: absolute;
-    bottom: 28px;
-    left: 340px;
-    font-size: 11px;
+#editor #title {
+    text-align: right;
+
+}
+
+
+#hint {
+    font-size: 10px;
+    color: #aaa;
+    height: 14px;
+}
+
+#hint.error {
     color: red;
 }
 
+
 #buttons {
-    margin: 20px 0 20px 20px;
+    text-align: center;
 }
 
-#panel button {
-    font-size: 14px;
+#buttons button {
+    font-size: 12px;
     color: #aaa;
     border: 2px solid #777;
     border-radius: 14px;
     background: #333;
     padding: 10px;
-    margin-right: 10px;
+    margin: 0 5px 0 5px;
     transition: all 0.2s ease;
     cursor: pointer;
 }
 
-#panel button:hover {
+#buttons button:hover {
     background: #777;
     color: black;
 }
 
-#panel button#btn_plot {
+#buttons button#btn_plot {
     background: #3fd5ff;
     color: white;
     border: 2px solid white;
@@ -72,14 +76,21 @@ html, body {
 }
 
 #form {
-    height: 20px;
-    font-size: 11px;
-    text-align: right;
-    padding: 0 30px 0 0;
+    padding: 20px 0 0 20px ;
+}
+
+#form label {
+    display: inline-block;
+    width: 80px;
+}
+
+#copy {
+    font-size: 10px;
+    padding: 20px 0 0 20px ;
 }
 
 
-#form a {
+#panel a {
     color: #bbb;
 }
 
@@ -105,8 +116,8 @@ html, body {
 
 #toggle {
     position: fixed;
-    left: 12px;
-    top: 12px;
+    left: 20px;
+    top: 20px;
     width: 4px;
     height: 4px;
     border: 4px solid #777;
@@ -123,8 +134,17 @@ html, body {
     width: 100%;
     background: #333;
     box-sizing: border-box;
-    padding: 40px 5px 5px 5px;
+    padding: 5px 5px 5px 320px;
 }
+
+.panel-closed #main {
+    height: 100%;
+    width: 100%;
+    background: #333;
+    box-sizing: border-box;
+    padding: 5px;
+}
+
 
 #main.has-frame {
     width: 90%;
@@ -152,10 +172,10 @@ svg {
     font-family: Monaco, Consolas, monospace;
     font-size: 11px;
     border: 1px dotted #777;
-    margin: 5px 20px 5px 20px;
+    margin: 0;
     padding: 5px;
     box-sizing: border-box;
-    height: 460px
+    height: 300px
 }
 
 .CodeMirror-simplescroll-horizontal, .CodeMirror-simplescroll-vertical {

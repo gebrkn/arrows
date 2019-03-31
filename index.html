@@ -12,41 +12,44 @@
     <script src="index.js"></script>
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/css/css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/xml/xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/htmlmixed/htmlmixed.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/addon/scroll/simplescrollbars.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.5.0/addon/scroll/simplescrollbars.min.js"></script>
 
-    <div id="panel">
-        <p id="form">
-            <label>distance</label><input name="distanceFactor" type="number" step="0.1">
-            <label>charge</label><input name="chargeFactor" type="number" step="5">
-            <label>gravity</label><input name="gravity" type="number" step="0.01">
-            | <a href="https://github.com/gebrkn/arrows">arrows 0.1.1</a> | made with <a href="http://d3js.org/">d3.js</a>
+<a id="toggle"></a>
+
+<div id="panel">
+    <div id="editor">
+        <p id="title">javascript or json:</p>
+        <textarea id="code">x = {}</textarea>
+        <p id="hint"></p>
+        <p id="buttons">
+            <button id="btn_plot">plot!</button>
+            <button id="btn_png">png</button>
+            <button id="btn_clear">clear</button>
+            <button id="btn_pin">pin</button>
         </p>
-        <div id="editor">
-            <textarea id="code">
-// paste your javascript here.
-// `_plot(value [,name])` to plot something
-
-_plot({"text": "Hello, world"}, "myObject")
-            </textarea>
-            <p id="buttons">
-                <button id="btn_plot">run!</button>
-                <button id="btn_png">get png</button>
-                <button id="btn_clear">clear</button>
-                <button id="btn_share">share</button>
-            </p>
-            <p id="error"></p>
-        </div>
     </div>
+    <div id="form">
+        <p><label>distance</label><input name="distanceFactor" type="number" step="0.1"></p>
+        <p><label>charge</label><input name="chargeFactor" type="number" step="5"></p>
+        <p><label>gravity</label><input name="gravity" type="number" step="0.01"></p>
+    </div>
+    <p id="copy">
+        <a href="https://github.com/gebrkn/arrows">arrows 0.1.2</a> | made with <a href="http://d3js.org/">d3.js</a>
+    </p>
+</div>
 
-    <a id="toggle"></a>
-    <div id="main"><svg></svg></div>
-    <iframe id="frame" sandbox="allow-same-origin allow-scripts"></iframe>
+<div id="main">
+    <svg></svg>
+</div>
+<iframe id="frame" sandbox="allow-same-origin allow-scripts"></iframe>
+
+<div id="html"></div>
 
 </body>
 </html>

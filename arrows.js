@@ -8,15 +8,16 @@ arrows = (function () {
     var MAX_VALUE_LEN = 50;
     var LINE_HEIGHT = 20;
 
+    var PROTO_NAME = "__proto__";
+
     var opts = {
-        withProto: true,
         distanceFactor: 2,
-        chargeFactor: -20,
+        chargeFactor: -5,
         gravity: 0.1
     };
 
     function option(key, val) {
-        if (arguments.length == 2) {
+        if (arguments.length === 2) {
             opts[key] = val;
             if (force)
                 force.stop().start();
@@ -24,8 +25,8 @@ arrows = (function () {
         return opts[key];
     }
 
-    function plot(obj, varname, depth) {
-        inspect(obj, varname, depth || 0);
+    function plot(obj, opts, varname, depth) {
+        inspect(obj, opts, varname, depth);
         draw();
     }
 
@@ -58,11 +59,11 @@ arrows = (function () {
 
             xml =
                 '<?xml version="1.0" encoding="utf-8" standalone="no"?>\n'
-                    + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n'
-                    + '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + s.w + 'px" height="' + s.h + 'px">\n'
-                    + "<style type='text/css'>" + css + "</style>"
-                    + xml
-                    + "</svg>";
+                + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n'
+                + '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + s.w + 'px" height="' + s.h + 'px">\n'
+                + "<style type='text/css'>" + css + "</style>"
+                + xml
+                + "</svg>";
 
             var canvas = document.createElement("canvas");
             canvas.setAttribute("width", s.w)
@@ -70,7 +71,7 @@ arrows = (function () {
 
             var image = new Image();
 
-            image.src = 'data:image/svg+xml;base64,' + window.btoa(xml);
+            image.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
             image.onload = function () {
                 var ctx = canvas.getContext('2d');
 
@@ -88,8 +89,7 @@ arrows = (function () {
         });
     }
 
-
-    function inspect(obj, varname, depth) {
+    function inspect(obj, opts, varname, depth) {
 
         function cut(s) {
             if (s.length > MAX_VALUE_LEN)
@@ -98,61 +98,75 @@ arrows = (function () {
         }
 
         function name(obj) {
-            if(obj === null)
+            if (obj === null)
                 return "null";
 
-            var s = "", t = typeof obj;
+            var t = typeof obj;
 
-            if(t === "function" && obj.hasOwnProperty("name"))
-                return obj.name + "()";
-
-            if(!s) {
-                try {
-                    s = "[object " + obj.constructor.name + "]";
-                } catch (e) {};
+            if (t === "function") {
+                return "ƒ " + (obj.name || "");
             }
 
-            if(!s) {
-                try {
-                    s = Object.prototype.toString.call(obj);
-                } catch(e) {}
+            if (t !== "object") {
+                return t;
             }
 
-            if(s) {
-                var m = s.match(/^\[object\s+(\w+)/);
-
-                if(m && m[1] === "Array") return "[]";
-                if(m && m[1] === "Object") return "{}";
-
-                return s;
+            if (Array.isArray(obj) && obj !== Array.prototype) {
+                return obj.length ? "[" + obj.length + "]" : "[]";
             }
 
-            if(t === "object") return "{}";
-            if(t === "function") return "()";
+            try {
+                let c = obj.constructor.name;
+                if (c === "Object" && obj !== Object.prototype)
+                    return "{}";
+                else if (c)
+                    return "{} " + c;
+            } catch (e) {
+            }
+            ;
+
+            try {
+                return Object.prototype.toString.call(obj);
+            } catch (e) {
+            }
+            ;
 
             return "?";
         }
 
-        function enumProps(base, withProto) {
+        function propNames(obj) {
+            if (opts.withInherited) {
+                var ps = [];
+                for (var k in obj)
+                    ps.push(k);
+                return ps;
+            }
+            return Object.getOwnPropertyNames(obj);
+        }
+
+
+        function enumProps(base) {
             var ps = [];
+
             try {
-                ps = Object.getOwnPropertyNames(base.value);
+                ps = propNames(base.value);
             } catch (e) {
                 return [];
             }
 
-            if (withProto && ps.indexOf("__proto__") < 0)
-                ps.push("__proto__");
+            ps = ps.filter(p => p !== PROTO_NAME);
 
             ps = ps.sort(function (a, b) {
                 return a.toLowerCase().localeCompare(b.toLowerCase());
             });
 
-            return ps.map(function (p, i) {
+            if (opts.withProto)
+                ps.unshift(PROTO_NAME);
+
+            ps = ps.map(function (p) {
                 var prop = {
                     name: p,
                     base: base,
-                    pos: i
                 };
 
                 try {
@@ -163,8 +177,22 @@ arrows = (function () {
                     prop.type = "error";
                 }
 
+                if (prop.type === 'function' && !opts.withFunctions)
+                    return null;
+
+
                 return prop;
             });
+
+            ps = ps.filter(Boolean);
+
+            ps.forEach(function (p, i) {
+                p.pos = i;
+            });
+
+            return ps;
+
+
         }
 
         var type = typeof(obj),
@@ -173,7 +201,8 @@ arrows = (function () {
                 props: [],
                 value: obj,
                 varname: varname || "",
-                title: ""
+                title: "",
+                opts: opts
             };
 
         switch (type) {
@@ -185,7 +214,7 @@ arrows = (function () {
                             return nodes[i];
 
                 base.title = name(obj);
-                base.props = enumProps(base, opts.withProto);
+                base.props = enumProps(base);
 
                 break;
             case "string":
@@ -207,17 +236,46 @@ arrows = (function () {
 
         if (depth) {
             base.props.forEach(function (p) {
-                var n = inspect(p.value, null, depth - 1);
                 links.push({
                     source: base,
-                    target: n,
-                    prop: p
+                    target: inspect(p.value, opts, "", depth - 1),
+                    prop: p,
                 });
             })
         }
 
         return base;
     }
+
+    function setFixed(nodes, mode) {
+        nodes.forEach(function (n) {
+            switch (mode) {
+                case "toggle":
+                    n.fixed = !n.fixed;
+                    break;
+                case "on":
+                    n.fixed = true;
+                    break;
+                case "off":
+                    n.fixed = false;
+                    break;
+            }
+            n.g.setAttribute("class", n.fixed ? "node fixed" : "node");
+        });
+
+        if (force)
+            force.start();
+
+    }
+
+    function pinAll() {
+        setFixed(nodes, "on");
+    }
+
+    function unpinAll() {
+        setFixed(nodes, "off");
+    }
+
 
     function draw() {
 
@@ -237,7 +295,7 @@ arrows = (function () {
 
         function hasLink(prop) {
             return links.some(function (x) {
-                return x.prop == prop;
+                return x.prop === prop;
             });
         }
 
@@ -250,11 +308,16 @@ arrows = (function () {
             })
         }
 
+        var curSize = {w: 0, h: 0};
+
         function updateSize() {
             var s = svgSize();
-            svg.attr("width", s.w).attr("height", s.h)
-                .attr("viewBox", "0 0 " + s.w + " " + s.h);
-            force.size([s.w, s.h]).start();
+            if (s.w !== curSize.w || s.h !== curSize.h) {
+                curSize = s;
+                svg.attr("width", s.w).attr("height", s.h)
+                    .attr("viewBox", "0 0 " + s.w + " " + s.h);
+                force.size([s.w, s.h]).start();
+            }
         }
 
         function initLayout() {
@@ -297,7 +360,7 @@ arrows = (function () {
 
             svg.selectAll("g.node").each(function (n) {
                 n.linkCount = 0;
-                n.x = Math.max(10 + n.width / 2,  Math.min(s.w - n.width / 2 - 10, n.x || 0))
+                n.x = Math.max(10 + n.width / 2, Math.min(s.w - n.width / 2 - 10, n.x || 0))
                 n.y = Math.max(10 + n.height / 2, Math.min(s.h - n.height / 2 - 10, n.y || 0))
             }).attr("transform", transform);
 
@@ -307,14 +370,14 @@ arrows = (function () {
         function onPropClick(prop) {
             if (hasLink(prop)) {
                 for (var i = 0; i < links.length; i++) {
-                    if (links[i].prop == prop)
+                    if (links[i].prop === prop)
                         deleteNode(links[i].target);
                 }
             } else {
                 links.push({
                     source: prop.base,
-                    target: inspect(prop.value, null, 0),
-                    prop: prop
+                    target: inspect(prop.value, prop.base.opts),
+                    prop: prop,
                 });
             }
 
@@ -329,9 +392,7 @@ arrows = (function () {
         }
 
         function onNodePin(n) {
-            n.fixed = !n.fixed;
-            n.g.setAttribute("class", n.fixed ? "node fixed" : "node");
-            force.start();
+            setFixed([n], 'toggle');
         }
 
         function drawProps(n, g) {
@@ -368,7 +429,7 @@ arrows = (function () {
                     return propY(p) + 12
                 })
                 .text(function (p) {
-                    return p.name
+                    return p.name === PROTO_NAME ? '[[Prototype]]' : p.name;
                 });
         }
 
@@ -411,8 +472,8 @@ arrows = (function () {
                 .attr("x", x + 10)
                 .attr("y", y + LINE_HEIGHT)
                 .attr("class", "title1")
-                .html(function() {
-                    if(n.varname)
+                .html(function () {
+                    if (n.varname)
                         return "<tspan>" + n.varname + "</tspan>";
                     return n.title;
 
@@ -492,16 +553,18 @@ arrows = (function () {
             .attr("marker-end", "url(#marker_end)");
 
 
-        updateSize();
+        setInterval(updateSize, 500);
         force.start();
-        window.onresize = updateSize;
     }
 
     return {
         plot: plot,
         option: option,
         asPNG: asPNG,
-        clear: clear
+        clear: clear,
+        draw: draw,
+        pinAll: pinAll,
+        unpinAll: unpinAll,
     }
 
 })();

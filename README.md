@@ -1,4 +1,4 @@
 # arrows
 JS objects visualisation
 
-http://merribithouse.net/arrows/
+https://merribithouse.net/arrows/
