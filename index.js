@@ -34,7 +34,8 @@ window.onload = function () {
         d3.select("#frame").classed("has-frame", false);
         d3.select("#main").classed("has-frame", false);
 
-        var res = getObject(code.getValue());
+        var txt = code.getValue().trim(),
+            res = getObject(txt);
 
         if (res[1] === 'null') {
             return;
@@ -50,7 +51,12 @@ window.onload = function () {
         }
 
         if (res[1] === 'js') {
-            arrows.plot(res[0], {withProto: true, withFunctions: true}, '', 0);
+            // well, yeah
+
+            var m = txt.match(/\b(\w+)\s*=.+$/);
+            var varname = m ? m[1] : '';
+
+            arrows.plot(res[0], {withProto: true, withFunctions: true}, varname, 0);
         }
     }
 
@@ -112,7 +118,7 @@ window.onload = function () {
             arrows.pinAll();
         }
         pinned = !pinned;
-        d3.select("#btn_pin").text(pinned ? "unpin" : "pin");
+        d3.select("#btn_pin").text(pinned ? "unpin all" : "pin all");
     });
 
     d3.selectAll("input").on("input", function () {

@@ -9,7 +9,7 @@ html, body {
     box-sizing: border-box;
     font-family: 'Lucida Grande', 'Lucida Sans Unicode', Tahoma, sans-serif;
     font-size: 12px;
-    width: 300px;
+    width: 400px;
     height: 100%;
     position: absolute;
     left: 0;
@@ -24,7 +24,7 @@ html, body {
 }
 
 .panel-closed #panel {
-    left:-300px;
+    left:-400px;
 }
 
 #editor {
@@ -134,7 +134,7 @@ html, body {
     width: 100%;
     background: #333;
     box-sizing: border-box;
-    padding: 5px 5px 5px 320px;
+    padding: 5px 5px 5px 410px;
 }
 
 .panel-closed #main {
@@ -175,7 +175,7 @@ svg {
     margin: 0;
     padding: 5px;
     box-sizing: border-box;
-    height: 300px
+    height: 500px
 }
 
 .CodeMirror-simplescroll-horizontal, .CodeMirror-simplescroll-vertical {

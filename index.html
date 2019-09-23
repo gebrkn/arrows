@@ -25,13 +25,21 @@
 <div id="panel">
     <div id="editor">
         <p id="title">javascript or json:</p>
-        <textarea id="code">x = {}</textarea>
+<textarea id="code">
+class Test {
+    constructor(name) {
+        this.name = name
+    }
+}
+
+MyObject = new Test("hello")
+</textarea>
         <p id="hint"></p>
         <p id="buttons">
             <button id="btn_plot">plot!</button>
             <button id="btn_png">png</button>
             <button id="btn_clear">clear</button>
-            <button id="btn_pin">pin</button>
+            <button id="btn_pin">pin all</button>
         </p>
     </div>
     <div id="form">
@@ -40,7 +48,7 @@
         <p><label>gravity</label><input name="gravity" type="number" step="0.01"></p>
     </div>
     <p id="copy">
-        <a href="https://github.com/gebrkn/arrows">arrows 0.1.2</a> | made with <a href="http://d3js.org/">d3.js</a>
+        <a href="https://github.com/gebrkn/arrows">arrows 0.1.3</a> | made with <a href="http://d3js.org/">d3.js</a>
     </p>
 </div>
 

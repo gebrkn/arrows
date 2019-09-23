@@ -112,26 +112,35 @@ arrows = (function () {
             }
 
             if (Array.isArray(obj) && obj !== Array.prototype) {
-                return obj.length ? "[" + obj.length + "]" : "[]";
+                return "[] " + (obj.length || "");
             }
 
             try {
-                let c = obj.constructor.name;
-                if (c === "Object" && obj !== Object.prototype)
-                    return "{}";
-                else if (c)
-                    return "{} " + c;
+                let c = obj.constructor, cn = c.name;
+
+                if (c.prototype === obj) {
+                    return "Ⓟ " + cn;
+                }
+
+                if (cn)
+                    return "{} " + cn;
+
             } catch (e) {
             }
             ;
 
             try {
-                return Object.prototype.toString.call(obj);
+                var s = Object.prototype.toString.call(obj);
+                if (s) {
+                    if (s[0] === '[')
+                        s = s.slice(1, -1);
+                    return "{} " + s;
+                }
             } catch (e) {
             }
             ;
 
-            return "?";
+            return "{} " + String(obj);
         }
 
         function propNames(obj) {
@@ -146,12 +155,15 @@ arrows = (function () {
 
 
         function enumProps(base) {
-            var ps = [];
+            var ps = [], sym = [];
+
+            if (base.value === null)
+                return [];
 
             try {
                 ps = propNames(base.value);
             } catch (e) {
-                return [];
+                ps = [];
             }
 
             ps = ps.filter(p => p !== PROTO_NAME);
@@ -170,6 +182,33 @@ arrows = (function () {
                 };
 
                 try {
+                    prop.value = p === PROTO_NAME ? Object.getPrototypeOf(base.value) : base.value[p];
+                    prop.type = typeof(prop.value);
+                } catch (e) {
+                    prop.value = e;
+                    prop.type = "error";
+                }
+
+                if (prop.type === 'function' && !opts.withFunctions)
+                    return null;
+
+                return prop;
+            });
+
+
+            try {
+                sym = Object.getOwnPropertySymbols(base.value);
+            } catch (e) {
+                sym = [];
+            }
+
+            sym = sym.map(function (p) {
+                var prop = {
+                    name: String(p).replace(/^Symbol\(/, '').replace(/\)$/, '') + ' ⓢ',
+                    base: base,
+                };
+
+                try {
                     prop.value = base.value[p];
                     prop.type = typeof(prop.value);
                 } catch (e) {
@@ -180,11 +219,10 @@ arrows = (function () {
                 if (prop.type === 'function' && !opts.withFunctions)
                     return null;
 
-
                 return prop;
             });
 
-            ps = ps.filter(Boolean);
+            ps = ps.concat(sym).filter(Boolean).sort((x, y) => x.name.localeCompare(y.name));
 
             ps.forEach(function (p, i) {
                 p.pos = i;
@@ -219,6 +257,9 @@ arrows = (function () {
                 break;
             case "string":
                 base.title = '"' + String(obj) + '"';
+                break;
+            case "bigint":
+                base.title = String(obj) + 'n';
                 break;
             default:
                 base.title = String(obj);
@@ -429,7 +470,7 @@ arrows = (function () {
                     return propY(p) + 12
                 })
                 .text(function (p) {
-                    return p.name === PROTO_NAME ? '[[Prototype]]' : p.name;
+                    return p.name === PROTO_NAME ? '«Prototype»' : p.name;
                 });
         }
 
