@@ -1,15 +1,26 @@
-function evalJS(_____s) {
+function evalJS(s) {
+    let ret = ["let __R = {}"];
+    let tpl = "if (typeof @ !== 'undefined') __R['@'] = @";
+
+    s.replace(/^\s*(?:var|let|const)\s+(\w+)/gm, function(_, v) {
+        ret.push(tpl.replace(/@/g, v))
+    });
+
+    ret.push("return __R");
+    ret = ret.join(';');
+
     try {
-        return [eval(_____s), 'js'];
-    } catch (_____e) {
-        return [_____e, 'error'];
+        let f = new Function(s + ';' + ret);
+        return [f(), 'js']
+    } catch (e) {
+        return [e, 'error'];
     }
 }
 
 
 window.onload = function () {
 
-    function getObject(s) {
+    function evalIt(s) {
         s = s.trim();
 
         if (!s)
@@ -35,7 +46,7 @@ window.onload = function () {
         d3.select("#main").classed("has-frame", false);
 
         var txt = code.getValue().trim(),
-            res = getObject(txt);
+            res = evalIt(txt);
 
         if (res[1] === 'null') {
             return;
@@ -51,12 +62,9 @@ window.onload = function () {
         }
 
         if (res[1] === 'js') {
-            // well, yeah
-
-            var m = txt.match(/\b(\w+)\s*=.+$/);
-            var varname = m ? m[1] : '';
-
-            arrows.plot(res[0], {withProto: true, withFunctions: true}, varname, 0);
+            for (var v in res[0]) {
+                arrows.plot(res[0][v], {withProto: true, withFunctions: true}, v, 0);
+            }
         }
     }
 
@@ -67,7 +75,7 @@ window.onload = function () {
         timer = setTimeout(function () {
             showError(null);
 
-            var res = getObject(code.getValue().trim());
+            var res = evalIt(code.getValue().trim());
             switch (res[1]) {
                 case "js":
                 case "json":

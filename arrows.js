@@ -470,7 +470,7 @@ arrows = (function () {
                     return propY(p) + 12
                 })
                 .text(function (p) {
-                    return p.name === PROTO_NAME ? '«Prototype»' : p.name;
+                    return p.name;
                 });
         }
 
